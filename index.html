@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ローポリ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#dde8ec;--panel:#f6f4ee;--ink:#22262e;--dim:#5a6170;--accent:#1f8a96;--edge:#22262e;
+  box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#141a26;--panel:#232c3c;--ink:#eceef2;--dim:#a2a9b8;--accent:#6cc8d4;--edge:#000;}}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:"DotGothic16","Hiragino Sans","Noto Sans JP",system-ui,sans-serif}
+main{max-width:760px;margin:0 auto;padding:28px 16px 40px}
+h1{font-size:2.6rem;font-weight:400;margin:0;letter-spacing:.08em}
+.lead{color:var(--dim);line-height:1.7;margin:6px 0 24px}
+ol{list-style:none;margin:0;padding:0;display:grid;gap:14px}
+a.card{display:grid;grid-template-columns:76px 1fr;gap:14px;align-items:center;padding:14px 16px;background:var(--panel);border:2px solid var(--ink);border-radius:10px;color:inherit;text-decoration:none}
+a.card:hover,a.card:focus-visible{border-color:var(--accent);outline:none;box-shadow:4px 4px 0 var(--accent)}
+.icon{width:76px;height:57px;border-radius:6px;background:var(--edge);display:grid;place-items:center;font-size:1.9rem}
+.name{font-size:1.2rem}
+.place{color:var(--dim);font-size:.9rem;margin-top:2px}
+.desc{font-size:.9rem;margin-top:6px;line-height:1.5}
+footer{color:var(--dim);font-size:.8rem;margin-top:28px;line-height:1.6}
+</style>
+</head>
+<body>
+<main>
+  <h1>ローポリ</h1>
+  <p class="lead">旅の写真をもとに作った、歩ける思い出のローポリシーン。初代プレステ風・64風・PS2風を切り替えて、十字キーで歩けます。</p>
+  <ol>
+    <li><a class="card" href="iceland.html"><span class="icon" aria-hidden="true">🧊</span><span><span class="name">薄氷の海岸</span><span class="place" lang="is">Ísland</span><span class="desc">黒い砂浜に張った海の薄氷。歩くとパリパリ割れて、氷の板を拾って投げられる。夜はオーロラ。</span></span></a></li>
+    <li><a class="card" href="valencia.html"><span class="icon" aria-hidden="true">🫧</span><span><span class="name">芸術科学都市の水の上</span><span class="place" lang="ca">València</span><span class="desc">ヘミスフェリックとパラウ・デ・レス・アルツの前、浅い池の中を歩く。夜は建物が灯り、水面に映る。</span></span></a></li>
+    <li><a class="card" href="hemisferic.html"><span class="icon" aria-hidden="true">🥚</span><span><span class="name">ヘミスフェリックの瞳の中</span><span class="place" lang="ca">València</span><span class="desc">白いドームとガラスのルーバーの下。縞模様の光の中を歩いて、裏の入口まで回り込める。</span></span></a></li>
+  </ol>
+  <footer>Three.js（r128）で作った1ファイルのHTML。画像やモデルのファイルは使わず、形も顔もすべてコードで描いています。</footer>
+</main>
+</body>
+</html>
