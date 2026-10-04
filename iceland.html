@@ -150,13 +150,13 @@ paintSky(...SKY_DAY);
   g.setAttribute('position',new THREE.Float32BufferAttribute(a,3));const m=new THREE.PointsMaterial({color:0xffffff,size:1.5,sizeAttenuation:false,fog:false,transparent:true,opacity:0.85});
   sky.add(new THREE.Points(g,m));nightOnly.push(m);}
 // mackerel sky: lots of small flat puffs on a high deck, so they shrink toward the horizon
-const cloudMats=[],CLOUD_COLS=[0xffffff,0xf3dde6,0xd7d7f2,0xe9e6f7];
+const cloudMats=[],CLOUD_COLS=[0xffffff,0xf3dde6,0xd7d7f2,0xe9e6f7],SOFT_COLS=[0xffffff,0xf4f6f8,0xe6eaef,0xd8dde4];  // soft clouds stay white/grey
 const clouds=new THREE.Group();scene.add(clouds);
 {const ms=CLOUD_COLS.map(c=>{const m=new THREE.MeshBasicMaterial({color:c,fog:false});m.userData.c=c;cloudMats.push(m);return m;});const geo=new THREE.IcosahedronGeometry(1,0);
   for(let i=0;i<150;i++){const b=new THREE.Mesh(geo,pick(ms));b.position.set((rnd()-.5)*760,72+rnd()*22,-40-rnd()*430);b.scale.set(6+rnd()*7,0.9,3.5+rnd()*3);b.rotation.y=(rnd()-.5)*0.6;b.userData.c=b.material.color.getHex();clouds.add(b);}}
 const puffT=tex(32,32,(g)=>{const gr=g.createRadialGradient(16,16,2,16,16,16);gr.addColorStop(0,'rgba(255,255,255,1)');gr.addColorStop(0.55,'rgba(255,255,255,.75)');gr.addColorStop(1,'rgba(255,255,255,0)');g.fillStyle=gr;g.fillRect(0,0,32,32);});
 function spriteClouds(n){const grp=new THREE.Group();grp.visible=false;scene.add(grp);
-  for(let i=0;i<n;i++){const m=new THREE.SpriteMaterial({map:puffT,color:pick(CLOUD_COLS),fog:false,transparent:true,depthWrite:false});m.userData.c=m.color.getHex();cloudMats.push(m);
+  for(let i=0;i<n;i++){const m=new THREE.SpriteMaterial({map:puffT,color:pick(SOFT_COLS),fog:false,transparent:true,depthWrite:false});m.userData.c=m.color.getHex();cloudMats.push(m);
     const sp=new THREE.Sprite(m);sp.position.set((rnd()-.5)*760,72+rnd()*22,-40-rnd()*430);const w=10+rnd()*14;sp.scale.set(w,w*0.45,1);grp.add(sp);}return grp;}
 const cloudsN64=spriteClouds(140),cloudsPS2=spriteClouds(320);
 // the aurora: additive curtains that ripple slowly
