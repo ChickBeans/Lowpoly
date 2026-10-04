@@ -47,38 +47,45 @@ button.shot{border-color:var(--accent);color:var(--accent);font-weight:700}
 button.abtn{width:78px;height:78px;padding:0;border-radius:50%;background:#c63a4f;color:#fff;border:3px solid var(--ink);font-size:1.7rem;touch-action:manipulation}
 button.abtn:active{transform:translateY(2px)}
 .pad-a small{font-size:.8rem;color:var(--dim)}
-.hint{font-size:.85rem;margin-bottom:12px}
+.hint{font-size:.85rem;margin-bottom:4px;text-align:center}
 button{font:inherit;font-size:1rem;color:var(--ink);background:var(--panel);border:2px solid var(--ink);padding:8px 14px;border-radius:4px;cursor:pointer}
 button[aria-pressed="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
 button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .back{margin:0 0 6px;font-size:.9rem}.back a{color:var(--accent)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:0 0 6px}.top .back{margin:0}
+button#lang{font-size:.85rem;padding:4px 10px}
+.pad-sub{display:flex;justify-content:center;flex-wrap:wrap;gap:8px;margin:4px 0 4px}
+button.pill{font-size:.9rem;padding:6px 14px;border-radius:999px}
+button.shot.big{display:block;width:100%;margin:10px 0 4px;padding:12px;font-size:1.1rem}
+.opts{display:grid;gap:10px;margin-top:10px;padding:12px 14px;background:var(--panel);border:2px solid var(--ink);border-radius:10px}
+.opt{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+.lbl{width:4.6em;flex:none;font-size:.85rem;color:var(--dim)}
+.opt button{font-size:.9rem;padding:6px 10px}
+.seg{display:inline-flex;border:2px solid var(--ink);border-radius:6px;overflow:hidden}
+.seg button{border:0;border-radius:0;border-left:2px solid var(--ink)}.seg button:first-child{border-left:0}
+.seg button[aria-pressed="true"]{border-color:var(--ink)}
 </style>
 </head>
 <body>
-<main><p class="back"><a href="index.html">← ローポリ</a></p>
+<main><div class="top"><p class="back"><a href="index.html">← ローポリ</a></p><button id="lang" lang="en">English</button></div>
   <h1 data-i="title">ヘミスフェリックの瞳の中</h1>
-  <p data-i="lead">写真をもとにしたオリジナルのローポリキャラ。ドラッグで左右・上下に視点を動かし、2本指（またはホイール）でズームできます。矢印キーと＋／−キーでも操作できます。</p>
   <div class="tv"><div class="screen"><canvas id="scr" width="640" height="480" data-ia="scene" aria-label="バレンシアのヘミスフェリックの中、白いドームの前に立つローポリの男性"></canvas><div class="loc" lang="ca"><span class="c">València</span><span class="t">L'Hemisfèric</span></div><div class="crt" aria-hidden="true"></div><div class="flash" aria-hidden="true"></div></div></div>
   <div class="pad-row">
     <div class="dpad" id="dpad" role="group" data-ia="dpad" aria-label="十字キー（押した方向に歩く）"><span class="arm h"></span><span class="arm v"></span><span class="ar u">▲</span><span class="ar d">▼</span><span class="ar l">◀</span><span class="ar r">▶</span><span class="dot" id="dot"></span></div>
     <div class="pad-a"><button id="jump" class="abtn" data-ia="jump" aria-label="ジャンプ">A</button><small data-i="jumpL">ジャンプ</small></div>
   </div>
-  <p class="hint" data-i="hint">十字キーで歩く・Aでジャンプ（キーボードはWASDとスペース）</p>
-  <div class="row" role="group" data-ia="modes" aria-label="表示モード">
-    <button id="m1" aria-pressed="true" data-i="ps1">初代プレステ風</button>
-    <button id="m64" aria-pressed="false" data-i="n64">64風</button>
-    <button id="m2" aria-pressed="false" data-i="ps2">PS2風</button>
-    <button id="spin" aria-pressed="true" data-i="spin">自動で回す</button>
-    <button id="walk" aria-pressed="false" data-i="walk">🚶 歩く</button>
-    <button id="dusk" aria-pressed="false" data-i="dusk">夕焼け</button>
-    <button id="crt" aria-pressed="false" data-i="crt">ブラウン管</button>
-    <button id="mono" aria-pressed="false" data-i="mono">白黒</button>
-    <button id="sepia" aria-pressed="false" data-i="sepia">セピア</button>
-    <button id="photo" data-i="photo">記念写真アングル</button>
-    <button id="back" data-i="back">入口へワープ</button>
-    <button id="shot" class="shot" data-i="shot">📸 写真を撮る</button>
-    <button id="lang" lang="en">English</button>
+  <div class="pad-sub">
+    <button id="walk" class="pill" aria-pressed="false" data-i="walk">🚶 歩く</button>
+    <button id="back" class="pill" data-i="back">入口へワープ</button>
   </div>
+  <p class="hint" data-i="hint">十字キーで歩く・Aでジャンプ（キーボードはWASDとスペース）</p>
+  <button id="shot" class="shot big" data-i="shot">📸 写真を撮る</button>
+  <section class="opts" data-ia="opts" aria-label="表示の設定">
+    <div class="opt"><span class="lbl" data-i="gMode">機種</span><div class="seg" role="group" data-ia="modes" aria-label="表示モード"><button id="m1" aria-pressed="true" data-i="ps1">初代プレステ風</button><button id="m64" aria-pressed="false" data-i="n64">64風</button><button id="m2" aria-pressed="false" data-i="ps2">PS2風</button></div></div>
+    <div class="opt"><span class="lbl" data-i="gScene">シーン</span><button id="dusk" aria-pressed="false" data-i="dusk">夕焼け</button></div>
+    <div class="opt"><span class="lbl" data-i="gLook">画面</span><div class="seg" role="group"><button id="color" aria-pressed="true" data-i="color">カラー</button><button id="mono" aria-pressed="false" data-i="mono">白黒</button><button id="sepia" aria-pressed="false" data-i="sepia">セピア</button></div><button id="crt" aria-pressed="false" data-i="crt">ブラウン管</button></div>
+    <div class="opt"><span class="lbl" data-i="gCam">カメラ</span><button id="spin" aria-pressed="true" data-i="spin">自動で回す</button><button id="photo" data-i="photo">記念写真アングル</button></div>
+  </section>
   <p id="shotMsg" class="msg" aria-live="polite"></p>
   <div id="gallery" class="gallery" data-ia="gallery" aria-label="撮った写真"></div>
 </main>
@@ -88,12 +95,12 @@ button:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 // ---------- language ----------
 const L={ja:{title:'ヘミスフェリックの瞳の中',lead:'写真をもとにしたオリジナルのローポリキャラ。ドラッグで左右・上下に視点を動かし、2本指（またはホイール）でズームできます。矢印キーと＋／−キーでも操作できます。',
   scene:'バレンシアのヘミスフェリックの中、白いドームの前に立つローポリの男性',modes:'表示モード',ps1:'初代プレステ風',mono:'白黒',sepia:'セピア',ps2:'PS2風',n64:'64風',spin:'自動で回す',walk:'🚶 歩く',dpad:'十字キー（押した方向に歩く）',jump:'ジャンプ',jumpL:'ジャンプ',hint:'十字キーで歩く・Aでジャンプ（キーボードはWASDとスペース）',dusk:'夕焼け',crt:'ブラウン管',photo:'記念写真アングル',back:'入口へワープ',shot:'📸 写真を撮る',gallery:'撮った写真',
-  other:'English',otherLang:'en',failed:'撮影に失敗しました。もう一度試してください。',saveAs:n=>n+' を保存',alt:'撮影した写真',
+  gMode:'機種',gLook:'画面',gScene:'シーン',gCam:'カメラ',color:'カラー',opts:'表示の設定',other:'English',otherLang:'en',failed:'撮影に失敗しました。もう一度試してください。',saveAs:n=>n+' を保存',alt:'撮影した写真',
   noSave:'撮影しました（この表示では保存できないので、下の写真を長押しして保存してください）',saved:n=>'保存しました：'+n,
   declined:'保存をキャンセルしました。下の写真を押せばもう一度保存できます。',rate:'少し待ってから、下の写真を押して保存してください。',err:'この表示では保存できませんでした。下の写真を長押しして保存してください。'},
  en:{title:'Inside the Eye of L\'Hemisfèric',lead:'An original low-poly character inspired by a photo. Drag to move the view around, and pinch with two fingers (or use the scroll wheel) to zoom. Arrow keys and +/− work too.',
   scene:'A low-poly man standing in front of the white dome inside L\'Hemisfèric, Valencia',modes:'Display mode',ps1:'PS1 style',mono:'Black & white',sepia:'Sepia',ps2:'PS2 style',n64:'N64 style',spin:'Auto-rotate',walk:'🚶 Walk',dpad:'D-pad (walk in that direction)',jump:'Jump',jumpL:'Jump',hint:'D-pad to walk, A to jump (WASD and Space on a keyboard)',dusk:'Sunset',crt:'CRT TV',photo:'Photo angle',back:'Go to the entrance',shot:'📸 Take a photo',gallery:'Your photos',
-  other:'日本語',otherLang:'ja',failed:'The photo didn\'t work. Please try again.',saveAs:n=>'Save '+n,alt:'Photo you took',
+  gMode:'Console',gLook:'Screen',gScene:'Scene',gCam:'Camera',color:'Color',opts:'Display settings',other:'日本語',otherLang:'ja',failed:'The photo didn\'t work. Please try again.',saveAs:n=>'Save '+n,alt:'Photo you took',
   noSave:'Photo taken (it can\'t be saved from this view, so press and hold the photo below to save it).',saved:n=>'Saved: '+n,
   declined:'Save cancelled. Tap the photo below to save it again.',rate:'Please wait a moment, then tap the photo below to save it.',err:'Couldn\'t save from this view. Press and hold the photo below to save it.'}};
 let lang='ja';const T=k=>L[lang][k];
@@ -456,7 +463,8 @@ let autoBase=0;spinBtn.onclick=()=>{auto=!auto;if(auto)autoBase=theta;spinBtn.se
 const crtBtn=document.getElementById('crt'),screenEl=document.querySelector('.screen');
 const monoBtn=document.getElementById('mono'),sepiaBtn=document.getElementById('sepia');let tone='none';
 function setTone(t){tone=tone===t?'none':t;canvas.style.filter=tone==='mono'?'grayscale(1)':tone==='sepia'?'sepia(1)':'';
-  monoBtn.setAttribute('aria-pressed',String(tone==='mono'));sepiaBtn.setAttribute('aria-pressed',String(tone==='sepia'));}
+  monoBtn.setAttribute('aria-pressed',String(tone==='mono'));sepiaBtn.setAttribute('aria-pressed',String(tone==='sepia'));colorBtn.setAttribute('aria-pressed',String(tone==='none'));}
+const colorBtn=document.getElementById('color');colorBtn.onclick=()=>{if(tone!=='none')setTone(tone);};
 monoBtn.onclick=()=>setTone('mono');sepiaBtn.onclick=()=>setTone('sepia');
 crtBtn.onclick=()=>{const on=!screenEl.classList.contains('crt-on');screenEl.classList.toggle('crt-on',on);crtBtn.setAttribute('aria-pressed',String(on));};
 // ---------- walking ----------
