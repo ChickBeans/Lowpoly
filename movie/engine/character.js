@@ -17,7 +17,12 @@
     point_fwd: sd => ({ T: V(sd * 0.16, 1.52, 0.52), pole: V(sd, -0.6, 0), flat: 0 }),
     hip:      sd => ({ T: V(sd * 0.25, 1.0, -0.04), pole: V(sd, 0.3, -0.1), flat: 0 }),
     peace_up: sd => ({ T: V(sd * 0.34, 1.66, 0.12), pole: V(sd, -0.6, -0.2), flat: 0, peace: 1 }),
-    peace_chest: sd => ({ T: V(sd * 0.22, 1.38, 0.3), pole: V(sd, -1, 0), flat: 0, peace: 1 })
+    peace_chest: sd => ({ T: V(sd * 0.22, 1.38, 0.3), pole: V(sd, -1, 0), flat: 0, peace: 1 }),
+    peace_cup: sd => ({ T: V(sd * 0.13, 1.3, 0.3), pole: V(sd, -1, 0), flat: 0, peace: 1 }),
+    cup_chest: sd => ({ T: V(sd * 0.07, 1.22, 0.25), pole: V(sd, -1, 0), flat: 0 }),
+    carry:    sd => ({ T: V(sd * 0.15, 1.12, 0.34), pole: V(sd, -1, 0.3), flat: 0 }),
+    eat:      sd => ({ T: V(sd * 0.05, 1.64, 0.22), pole: V(sd, -1, 0), flat: 0 }),
+    table:    sd => ({ T: V(sd * 0.17, 1.2, 0.4), pole: V(sd, -1, 0.2), flat: 0 })
   };
 
   // 32px dot face (same drawing language as the Reykjavik scene)
@@ -48,6 +53,21 @@
 
   // hair styles: boxes placed relative to the head centre (head is 0.24 x 0.29 x 0.25)
   const HAIR = {
+    shaggy(h, m) {         // medium, layered, covers the ears; parted fringe kept above the brows
+      box(h, 0.285, 0.085, 0.3, m, 0, 0.18, -0.01);
+      box(h, 0.12, 0.06, 0.3, m, -0.08, 0.225, -0.01).rotation.z = 0.2; box(h, 0.16, 0.07, 0.3, m, 0.06, 0.23, -0.01).rotation.z = -0.15;
+      box(h, 0.29, 0.26, 0.08, m, 0, 0.03, -0.13);
+      [-1, 1].forEach(sd => { box(h, 0.05, 0.2, 0.22, m, sd * 0.135, 0.04, -0.02); box(h, 0.045, 0.08, 0.06, m, sd * 0.13, -0.07, 0.06); });
+      box(h, 0.16, 0.07, 0.05, m, 0.045, 0.125, 0.127).rotation.z = -0.3; box(h, 0.09, 0.06, 0.05, m, -0.09, 0.13, 0.127).rotation.z = 0.35;
+      box(h, 0.05, 0.05, 0.045, m, 0.12, 0.085, 0.12).rotation.z = -0.2; box(h, 0.045, 0.05, 0.045, m, -0.125, 0.09, 0.12).rotation.z = 0.25;
+    },
+    long(h, m) {           // long straight, full bangs above the brows, past the shoulders
+      box(h, 0.285, 0.075, 0.3, m, 0, 0.18, -0.005);
+      box(h, 0.285, 0.065, 0.05, m, 0, 0.105, 0.125);
+      [-0.11, -0.055, 0, 0.055, 0.11].forEach((x, i) => box(h, 0.055, 0.025, 0.045, m, x, 0.064 + (i % 2) * 0.006, 0.128));
+      [-1, 1].forEach(sd => box(h, 0.055, 0.48, 0.16, m, sd * 0.148, -0.13, -0.02));
+      return box(h, 0.3, 0.56, 0.08, m, 0, -0.17, -0.13);
+    },
     short(h, m) {          // close-cropped, sits under a hat
       box(h, 0.27, 0.06, 0.28, m, 0, 0.165, -0.01);
       box(h, 0.27, 0.2, 0.06, m, 0, 0.05, -0.128);
@@ -81,6 +101,20 @@
       return tail;
     }
   };
+
+  function makeProps(body) {
+    const P = {}, white = MP.mat(0xf4f2ec);
+    const group = () => { const g = new THREE.Group(); g.visible = false; body.add(g); return g; };
+    P.cup = group(); { const c = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.032, 0.11, 7), white); c.position.y = 0.055; P.cup.add(c); const l = new THREE.Mesh(new THREE.CylinderGeometry(0.043, 0.043, 0.015, 7), MP.mat(0xe2e0da)); l.position.y = 0.115; P.cup.add(l); }
+    P.burger = group(); [[0.012, 0xd99a4a, 0.05], [0.0, 0x4a2a1a, 0.052], [-0.012, 0x6aa040, 0.054], [-0.024, 0xd99a4a, 0.05]].forEach(([y, c, r]) => { const d = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.018, 8), MP.mat(c)); d.position.y = y + 0.04; P.burger.add(d); });
+    P.phone = group(); { const ph = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.13, 0.012), MP.mat(0x1c1c20)); P.phone.add(ph); }
+    P.tray = group(); { const tr = new THREE.Mesh(new THREE.BoxGeometry(0.42, 0.025, 0.3), MP.mat(0xc8302c)); P.tray.add(tr);
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.05, 0.05, 0.05, 8), MP.mat(0xd99a4a)); b.position.set(-0.1, 0.04, 0); P.tray.add(b);
+      const f = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.08, 0.05), MP.mat(0xd8282c)); f.position.set(0.02, 0.05, 0.04); P.tray.add(f);
+      const ff = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.03, 0.04), MP.mat(0xf2c84a)); ff.position.set(0.02, 0.1, 0.04); P.tray.add(ff);
+      const c = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.032, 0.11, 7), white); c.position.set(0.13, 0.065, -0.04); P.tray.add(c); }
+    return P;
+  }
 
   MP.buildCharacter = function (def) {
     const root = new THREE.Group(), body = new THREE.Group(); root.add(body);
@@ -133,6 +167,8 @@
     box(head, 0.04, 0.07, 0.05, skin, -0.122, -0.005, -0.01); box(head, 0.04, 0.07, 0.05, skin, 0.122, -0.005, -0.01);
     if (def.earrings) [-1, 1].forEach(sd => box(head, 0.016, 0.03, 0.016, MP.mat(0xd9a83c), sd * 0.127, -0.05, 0));
     const tail = HAIR[def.hairStyle](head, hair);
+    // things that can be held in a hand (shown when the timeline says so)
+    const props = makeProps(body);
     if (def.hat === 'bucket') {
       const hm = MP.mat(def.hatColor);
       const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.235, 0.25, 0.02, 10), hm); brim.position.set(0, 0.14, 0); brim.rotation.x = -0.06; head.add(brim);
@@ -142,6 +178,19 @@
       const hm = MP.mat(def.hatColor);
       const crown = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2), hm); crown.scale.set(1, 0.75, 1.05); crown.position.set(0, 0.15, -0.01); head.add(crown);
       box(head, 0.2, 0.018, 0.13, hm, 0, 0.152, 0.17).rotation.x = 0.12;
+    }
+    if (def.hat === 'beanie') { const bn = new THREE.Mesh(new THREE.SphereGeometry(0.155, 8, 5, 0, Math.PI * 2, 0, Math.PI * 0.55), MP.mat(def.hatColor)); bn.scale.set(1, 0.95, 1.03); bn.position.set(0, 0.11, -0.01); head.add(bn); box(head, 0.29, 0.05, 0.3, MP.mat(new THREE.Color(def.hatColor).multiplyScalar(0.85)), 0, 0.12, -0.01); }
+    if (def.scarf) {        // chunky knit scarf: a wrap round the neck and one end hanging in front, with fringe
+      const sm = MP.mat(0xffffff, { map: def.scarf });
+      box(body, 0.36, 0.13, 0.33, sm, 0, 1.5, 0.01); box(body, 0.3, 0.08, 0.24, sm, 0.01, 1.58, -0.03);
+      const end = box(body, 0.12, 0.42, 0.06, sm, -0.06, 1.27, 0.165); end.rotation.z = 0.06;
+      for (let i = 0; i < 6; i++) box(body, 0.014, 0.08, 0.014, MP.mat([0x6b4a3a, 0x4a5a8e, 0xbfae9e, 0x2f3150][i % 4]), -0.1 + i * 0.016, 1.02, 0.17);
+    }
+    if (def.bag === 'cross') {   // strap across the chest from one shoulder to the other hip, small bag at the hip
+      const sd = def.bagSide || 1, strapM = MP.mat(def.strapColor || 0x1a1a1e);
+      const st = new THREE.Mesh(UNIT_BOX, strapM); MP.span(st, V(-sd * 0.15, 1.56, 0.13), V(sd * 0.22, 1.0, 0.15), 1); st.scale.x = def.strapWide ? 0.06 : 0.015; st.scale.z = 0.012; body.add(st);
+      const stb = new THREE.Mesh(UNIT_BOX, strapM); MP.span(stb, V(-sd * 0.15, 1.56, -0.12), V(sd * 0.22, 1.0, -0.14), 1); stb.scale.x = st.scale.x; stb.scale.z = 0.012; body.add(stb);
+      if (def.bagColor !== undefined) box(body, 0.17, 0.12, 0.08, MP.mat(def.bagColor), sd * 0.27, 0.95, 0.06).rotation.z = -sd * 0.12;
     }
     if (def.towel) { const tw = MP.mat(0xf2f2ee); box(body, 0.12, 0.05, 0.3, tw, def.towel * 0.16, 1.57, 0); box(body, 0.12, 0.28, 0.03, tw, def.towel * 0.17, 1.42, 0.14); box(body, 0.12, 0.22, 0.03, tw, def.towel * 0.16, 1.45, -0.14); }
     // bags
@@ -189,6 +238,16 @@
       head.rotation.set(lk[1] + Math.sin(st.t * 0.9 + (def.breathPhase || 0)) * 0.02, lk[0] + Math.sin(st.t * 0.6 + (def.breathPhase || 0)) * 0.04, def.tilt || 0);
       if (tail) tail.rotation.z = Math.sin(st.phase) * 0.12 * st.amp + Math.sin(st.t * 1.3) * 0.03;
       if (bag) bag.visible = !st.bagGone;
+      // held items follow the hand
+      Object.values(props).forEach(p => { p.visible = false; });
+      if (st.hold) arms.forEach(a => {
+        const what = st.hold[a.sd < 0 ? 'R' : 'L']; if (!what || !props[what]) return;
+        const p = props[what], W = a.hand.position; p.visible = true;
+        if (what === 'tray') p.position.set(0, W.y - 0.02, W.z + 0.04); else if (what === 'phone') p.position.set(W.x, W.y + 0.06, W.z + 0.03); else p.position.set(W.x - a.sd * 0.01, W.y - 0.02, W.z + 0.04);
+      });
+      // sitting: body lowered onto a stool, legs forward
+      const sit = st.sit || 0;
+      if (sit > 0) { body.position.y -= 0.16 * sit; legs.forEach(l => { l.rotation.x = MP.lerp(l.rotation.x, -1.45, sit); }); }
     }
     return { root, apply, def };
   };

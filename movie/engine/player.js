@@ -14,10 +14,11 @@
     sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 1, far: 90 });
     sun.shadow.bias = -0.0015; scene.add(sun, sun.target);
 
-    const env = MP.ENV[def.environment](scene, { sun, hemi, cam });
+    const ctx = { sun, hemi, cam }, env = MP.ENV[def.environment](scene, ctx), SUN_OFF = ctx.sunDir || MP.V(-14, 26, 18);
     const cast = def.cast.map(c => {
       const a = MP.buildCharacter(c.look); scene.add(a.root);
-      return { def: c, actor: a, path: MP.makePath(c.path), poses: MP.makePoses(c.poses || [{ t: 0 }]), skirt: MP.makeRamp(c.skirt || []) };
+      return { def: c, actor: a, path: MP.makePath(c.path), poses: MP.makePoses(c.poses || [{ t: 0 }]), skirt: MP.makeRamp(c.skirt || []), sit: MP.makeRamp(c.sit || []),
+        hold: t => { let h = null; (c.hold || []).forEach(k => { if (t >= k.t) h = k; }); return h; } };
     });
     // bags left at the counter appear when handed over
     const counterBags = !env.counterSpot ? [] : cast.filter(c => c.def.bagGoneAt !== undefined).map((c, i) => {
@@ -51,15 +52,45 @@
       out.restore();
     }
 
+    // speech bubble above an actor's head (projected from 3D to the screen)
+    const castById = {}; cast.forEach(c => { castById[c.def.id] = c; });
+    function bubble(say, t) {
+      const c = castById[say.who]; if (!c) return;
+      const k = Math.min(MP.smooth((t - say.t0) / 0.25), MP.smooth((say.t1 - t) / 0.25)); if (k <= 0) return;
+      const p = c.actor.root.position.clone().add(MP.V(0, 2.15 * (c.def.look.scale || 1), 0)).project(cam);
+      if (p.z > 1) return;
+      const x = (p.x * 0.5 + 0.5) * W, y = (-p.y * 0.5 + 0.5) * H, lines = say.text.split('\n');
+      out.save(); out.globalAlpha = k; out.font = font(13);
+      const w = Math.max(...lines.map(l => out.measureText(l).width)) + 18, h = lines.length * 17 + 10, bx = MP.clamp(x - w / 2, 6, W - w - 6), by = Math.max(6, y - h - 14);
+      out.fillStyle = '#fffdf6'; out.strokeStyle = '#1b2236'; out.lineWidth = 2; out.beginPath(); out.rect(bx, by, w, h); out.fill(); out.stroke();
+      out.beginPath(); out.moveTo(MP.clamp(x, bx + 10, bx + w - 10) - 6, by + h); out.lineTo(MP.clamp(x, bx + 10, bx + w - 10), by + h + 10); out.lineTo(MP.clamp(x, bx + 10, bx + w - 10) + 6, by + h); out.fill(); out.stroke();
+      out.fillStyle = '#1b2236'; out.textAlign = 'left'; lines.forEach((l, i) => out.fillText(l, bx + 9, by + 18 + i * 17));
+      out.restore();
+    }
+    // orange date imprint, like an old film camera
+    function dateStamp(alpha) {
+      if (!def.date) return;
+      out.save(); out.globalAlpha = alpha; out.textAlign = 'right'; out.font = 'bold 20px "Courier New", ui-monospace, monospace';
+      out.shadowColor = 'rgba(255,90,20,.85)'; out.shadowBlur = 6; out.fillStyle = '#ffa53a';
+      out.fillText(def.date, W * 0.95, H * 0.75); out.restore();
+    }
+    function cover(img, alpha) {
+      const ir = img.width / img.height, fr = W / H; let sw = img.width, sh = img.height, sx = 0, sy = 0;
+      if (ir > fr) { sw = img.height * fr; sx = (img.width - sw) / 2; } else { sh = img.width / fr; sy = (img.height - sh) / 2; }
+      out.save(); out.globalAlpha = alpha; out.imageSmoothingEnabled = true; out.drawImage(img, sx, sy, sw, sh, 0, 0, W, H); out.restore();
+    }
+
     function renderAt(t) {
       cast.forEach(c => {
         const p = c.path(t), po = c.poses(t), amp = MP.clamp(p.speed / 0.9, 0, 1);
-        c.actor.apply({ x: p.x, y: p.y, z: p.z, yaw: p.yaw, phase: p.dist * 5.2, amp, arms: po.arms, look: po.look, skirt: c.skirt(t), bagGone: c.def.bagGoneAt !== undefined && t >= c.def.bagGoneAt, t });
+        c.actor.apply({ x: p.x, y: p.y, z: p.z, yaw: p.yaw, phase: p.dist * 5.2, amp, arms: po.arms, look: po.look, skirt: c.skirt(t), sit: c.sit(t), hold: c.hold(t), bagGone: c.def.bagGoneAt !== undefined && t >= c.def.bagGoneAt, t });
       });
       counterBags.forEach(b => { b.m.visible = t >= b.at; });
       const cs = camAt(t); cam.position.set(...cs.pos); cam.lookAt(...cs.tgt); if (cam.fov !== cs.fov) { cam.fov = cs.fov; cam.updateProjectionMatrix(); }
       // keep the sun's shadow box around what the camera is looking at
-      const fp = MP.V(...cs.pos).lerp(MP.V(...cs.tgt), 0.35); sun.target.position.copy(fp); sun.position.copy(fp).add(MP.V(-14, 26, 18));
+      const fp = MP.V(...cs.pos).lerp(MP.V(...cs.tgt), 0.35); sun.target.position.copy(fp); sun.position.copy(fp).add(SUN_OFF);
+      // scene events: props that appear / disappear at given times
+      Object.entries(def.envState || {}).forEach(([fn, keys]) => { let v = keys[0].v; keys.forEach(k => { if (t >= k.t) v = k.v; }); env[fn](v); });
       env.update(t, cam.position);
       renderer.render(scene, cam);
 
@@ -69,8 +100,13 @@
       if (t < fs.shutterAt) snap = null;
       const sinceShot = t - fs.shutterAt;
       if (sinceShot >= 0 && sinceShot < 0.9) { out.fillStyle = `rgba(255,255,255,${(1 - sinceShot / 0.9) * 0.95})`; out.fillRect(0, 0, W, H); }
+      (def.says || []).forEach(sy => { if (t >= sy.t0 && t <= sy.t1) bubble(sy, t); });
+      // after the shutter: either the real photo fades in over the polygon frame, or the polygon frame becomes a print
+      const reveal = fs.reveal === 'photo' && original;
+      if (reveal && t >= fs.revealAt) cover(original, MP.smooth((t - fs.revealAt) / (fs.revealDur || 2.2)));
+      if (t >= fs.shutterAt) dateStamp(MP.smooth((t - fs.shutterAt - 0.3) / 0.6));
       if (t >= fs.shutterAt + 2.4) caption(MP.smooth((t - fs.shutterAt - 2.4) / 1.2));
-      if (snap && t >= fs.printAt) {
+      if (!reveal && snap && t >= fs.printAt) {
         const k = MP.smooth((t - fs.printAt) / 1.4);
         out.fillStyle = `rgba(10,12,20,${0.45 * k})`; out.fillRect(0, 0, W, H);
         const two = original && t >= fs.originalAt;
