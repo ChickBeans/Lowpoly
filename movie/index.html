@@ -71,7 +71,7 @@ label.file{display:inline-block;margin-top:6px}
   def.beats.forEach(b => { const e = document.createElement('button'); e.textContent = b.label; e.onclick = () => { t = b.t; if (playing) MP.audio.start(t, def); show(); }; document.getElementById('beats').appendChild(e); });
   document.getElementById('photo').onchange = e => { const f = e.target.files[0]; if (!f) return; const img = new Image(); img.onload = () => { player.setOriginal(img); show(); }; img.src = URL.createObjectURL(f); };
   function loop(now) { if (playing) { t += (now - last) / 1000; last = now; if (t >= def.duration) { t = def.duration; setPlaying(false); } show(); } requestAnimationFrame(loop); }
-  window.MOVIE = { renderAt: s => player.renderAt(s), duration: def.duration };
+  window.MOVIE = { renderAt: s => player.renderAt(s), duration: def.duration, shutterAt: def.finalShot.shutterAt };
   show(); requestAnimationFrame(loop);
 })();
 </script>

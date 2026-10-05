@@ -1,0 +1,9 @@
+# GitHub Pages (Jekyll) settings: keep work-in-progress and docs off the public site.
+# movie/ is excluded until everyone shown in the scenes has agreed to publication.
+exclude:
+  - movie
+  - tools
+  - docs
+  - out
+  - CLAUDE.md
+  - BACKLOG.md
