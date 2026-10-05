@@ -9,18 +9,18 @@
     renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.BasicShadowMap;
     const scene = new THREE.Scene(); scene.fog = new THREE.Fog(0xc4d8ee, 60, 200);
     const cam = new THREE.PerspectiveCamera(50, W / H, 0.1, 900);
-    scene.add(new THREE.HemisphereLight(0xdfeaff, 0x8a8070, 0.62));
+    const hemi = new THREE.HemisphereLight(0xdfeaff, 0x8a8070, 0.62); scene.add(hemi);
     const sun = new THREE.DirectionalLight(0xfff3dc, 0.95); sun.position.set(-14, 26, 18); sun.target.position.set(0, 0, -4);
     sun.castShadow = true; sun.shadow.mapSize.set(2048, 2048); Object.assign(sun.shadow.camera, { left: -22, right: 22, top: 22, bottom: -22, near: 1, far: 90 });
     sun.shadow.bias = -0.0015; scene.add(sun, sun.target);
 
-    const env = MP.ENV[def.environment](scene);
+    const env = MP.ENV[def.environment](scene, { sun, hemi, cam });
     const cast = def.cast.map(c => {
       const a = MP.buildCharacter(c.look); scene.add(a.root);
       return { def: c, actor: a, path: MP.makePath(c.path), poses: MP.makePoses(c.poses || [{ t: 0 }]), skirt: MP.makeRamp(c.skirt || []) };
     });
     // bags left at the counter appear when handed over
-    const counterBags = cast.filter(c => c.def.bagGoneAt !== undefined).map((c, i) => {
+    const counterBags = !env.counterSpot ? [] : cast.filter(c => c.def.bagGoneAt !== undefined).map((c, i) => {
       const m = new THREE.Mesh(new THREE.BoxGeometry(i ? 0.3 : 0.27, i ? 0.32 : 0.28, i ? 0.14 : 0.08), MP.mat(c.def.look.bagColor));
       m.position.copy(env.counterSpot.bags).add(MP.V(0, i ? 0.16 : 0.14, i ? 0.55 : 0)); m.castShadow = true; scene.add(m); return { m, at: c.def.bagGoneAt };
     });
@@ -54,10 +54,12 @@
     function renderAt(t) {
       cast.forEach(c => {
         const p = c.path(t), po = c.poses(t), amp = MP.clamp(p.speed / 0.9, 0, 1);
-        c.actor.apply({ x: p.x, z: p.z, yaw: p.yaw, phase: p.dist * 5.2, amp, arms: po.arms, look: po.look, skirt: c.skirt(t), bagGone: c.def.bagGoneAt !== undefined && t >= c.def.bagGoneAt, t });
+        c.actor.apply({ x: p.x, y: p.y, z: p.z, yaw: p.yaw, phase: p.dist * 5.2, amp, arms: po.arms, look: po.look, skirt: c.skirt(t), bagGone: c.def.bagGoneAt !== undefined && t >= c.def.bagGoneAt, t });
       });
       counterBags.forEach(b => { b.m.visible = t >= b.at; });
       const cs = camAt(t); cam.position.set(...cs.pos); cam.lookAt(...cs.tgt); if (cam.fov !== cs.fov) { cam.fov = cs.fov; cam.updateProjectionMatrix(); }
+      // keep the sun's shadow box around what the camera is looking at
+      const fp = MP.V(...cs.pos).lerp(MP.V(...cs.tgt), 0.35); sun.target.position.copy(fp); sun.position.copy(fp).add(MP.V(-14, 26, 18));
       env.update(t, cam.position);
       renderer.render(scene, cam);
 

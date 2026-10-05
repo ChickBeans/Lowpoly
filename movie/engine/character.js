@@ -13,7 +13,11 @@
     namaste:  sd => ({ T: V(sd * 0.032, 1.2, 0.21), pole: V(sd, -0.5, -0.4), flat: 1 }),
     point_up: sd => ({ T: V(sd * 0.3, 1.86, 0.32), pole: V(sd, 0, -0.5), flat: 0 }),
     open:     sd => ({ T: V(sd * 0.36, 1.25, 0.3), pole: V(sd, -0.8, -0.2), flat: 0 }),
-    phone:    sd => ({ T: V(sd * 0.07, 1.52, 0.3), pole: V(sd, -1, 0), flat: 0 })
+    phone:    sd => ({ T: V(sd * 0.07, 1.52, 0.3), pole: V(sd, -1, 0), flat: 0 }),
+    point_fwd: sd => ({ T: V(sd * 0.16, 1.52, 0.52), pole: V(sd, -0.6, 0), flat: 0 }),
+    hip:      sd => ({ T: V(sd * 0.25, 1.0, -0.04), pole: V(sd, 0.3, -0.1), flat: 0 }),
+    peace_up: sd => ({ T: V(sd * 0.34, 1.66, 0.12), pole: V(sd, -0.6, -0.2), flat: 0, peace: 1 }),
+    peace_chest: sd => ({ T: V(sd * 0.22, 1.38, 0.3), pole: V(sd, -1, 0), flat: 0, peace: 1 })
   };
 
   // 32px dot face (same drawing language as the Reykjavik scene)
@@ -36,6 +40,7 @@
       g.fillStyle = o.shade; g.fillRect(9, 22, 1, 2); g.fillRect(22, 22, 1, 2);
       if (o.blush) { g.fillStyle = 'rgba(225,120,110,.45)'; g.fillRect(5, 19, 4, 2); g.fillRect(23, 19, 4, 2); }
       g.fillStyle = o.lip; g.fillRect(12, 24, 8, 1); g.fillRect(11, 23, 1, 1); g.fillRect(20, 23, 1, 1);
+      if (o.teeth) { g.fillStyle = '#f4efe6'; g.fillRect(13, 24, 6, 1); g.fillStyle = o.lip; g.fillRect(13, 25, 6, 1); }
     });
   }
 
@@ -43,6 +48,19 @@
 
   // hair styles: boxes placed relative to the head centre (head is 0.24 x 0.29 x 0.25)
   const HAIR = {
+    short(h, m) {          // close-cropped, sits under a hat
+      box(h, 0.27, 0.06, 0.28, m, 0, 0.165, -0.01);
+      box(h, 0.27, 0.2, 0.06, m, 0, 0.05, -0.128);
+      [-1, 1].forEach(sd => box(h, 0.035, 0.12, 0.18, m, sd * 0.13, 0.08, -0.04));
+      box(h, 0.25, 0.035, 0.04, m, 0, 0.13, 0.122);
+    },
+    wavy(h, m) {           // short, a bit of volume and waves, forehead showing
+      box(h, 0.275, 0.08, 0.29, m, 0, 0.175, -0.005);
+      [[-0.09, 0.225], [-0.03, 0.235], [0.04, 0.23], [0.1, 0.22]].forEach(([x, y], i) => { const b = box(h, 0.08, 0.06, 0.24, m, x, y, -0.02); b.rotation.z = (i % 2 ? -1 : 1) * 0.25; });
+      box(h, 0.275, 0.22, 0.07, m, 0, 0.06, -0.13);
+      [-1, 1].forEach(sd => box(h, 0.04, 0.12, 0.2, m, sd * 0.132, 0.1, -0.03));
+      [-0.08, -0.02, 0.05, 0.1].forEach((x, i) => box(h, 0.06, 0.05, 0.05, m, x, 0.145 - (i % 2) * 0.01, 0.12).rotation.z = 0.3 - i * 0.2);
+    },
     shortFringe(h, m) {
       box(h, 0.275, 0.08, 0.29, m, 0, 0.175, -0.005);
       box(h, 0.255, 0.06, 0.27, m, 0.01, 0.215, -0.01);
@@ -73,7 +91,9 @@
       if (def.longPants) { const p = new THREE.Mesh(UNIT_CYL, shorts); MP.span(p, V(0, 0, 0), V(0, -0.84, 0.01), 0.1); g.add(p); }
       else {
         const sh = new THREE.Mesh(UNIT_CYL, shorts); MP.span(sh, V(0, 0.02, 0), V(sd * 0.01, -0.42, 0.01), 0.112); g.add(sh);
-        const sk = new THREE.Mesh(UNIT_CYL, skin); MP.span(sk, V(sd * 0.01, -0.42, 0.01), V(sd * 0.01, -0.84, 0.01), 0.055); g.add(sk);
+        const lower = def.legLower ? MP.mat(0xffffff, { map: def.legLower }) : skin;
+        const sk = new THREE.Mesh(UNIT_CYL, lower); MP.span(sk, V(sd * 0.01, -0.42, 0.01), V(sd * 0.01, -0.84, 0.01), def.legLower ? 0.062 : 0.055); g.add(sk);
+        if (def.legLower) { const th = new THREE.Mesh(UNIT_CYL, lower); MP.span(th, V(0, 0.0, 0), V(sd * 0.01, -0.36, 0.01), 0.1); g.add(th); }
       }
       box(g, 0.12, 0.085, 0.26, shoe, sd * 0.01, -0.875, 0.05);
       return g;
@@ -88,18 +108,22 @@
     }
     skirt.visible = false;
     // torso
-    box(body, 0.44, 0.6, 0.26, top, 0, 1.22, 0);
+    const topFront = def.topFront ? MP.mat(0xffffff, { map: def.topFront }) : (def.topTex ? MP.mat(0xffffff, { map: def.topTex }) : top), topSide = def.topTex ? MP.mat(0xffffff, { map: def.topTex }) : top;
+    { const t = new THREE.Mesh(UNIT_BOX, [topSide, topSide, topSide, topSide, topFront, topSide]); t.scale.set(0.44, 0.6, 0.26); t.position.set(0, 1.22, 0); body.add(t); }
     box(body, 0.445, 0.05, 0.265, MP.mat(new THREE.Color(def.top).multiplyScalar(0.85)), 0, 0.94, 0);
     box(body, 0.19, 0.035, 0.19, top, 0, 1.53, 0);
     const neck = new THREE.Mesh(UNIT_CYL, skin); MP.span(neck, V(0, 1.5, 0), V(0, 1.63, 0), 0.056); body.add(neck);
     // arms: meshes re-placed every frame by IK
     const arms = [-1, 1].map(sd => {
       const a = { sd, S: V(sd * 0.235, SHOULDER_Y, 0) };
-      a.upper = new THREE.Mesh(UNIT_CYL, top); body.add(a.upper);
+      const upM = def.upperSleeve !== undefined ? MP.mat(def.upperSleeve) : (def.sleeveTex ? MP.mat(0xffffff, { map: def.sleeveTex }) : top);
+      const foreM = def.foreSleeve !== undefined ? MP.mat(def.foreSleeve) : (def.sleeveTex ? MP.mat(0xffffff, { map: def.sleeveTex }) : top);
+      a.upper = new THREE.Mesh(UNIT_CYL, upM); body.add(a.upper);
       a.upperSkin = def.sleeve === 'short' ? new THREE.Mesh(UNIT_CYL, skin) : null; if (a.upperSkin) body.add(a.upperSkin);
-      a.fore = new THREE.Mesh(UNIT_CYL, def.sleeve === 'short' ? skin : top); body.add(a.fore);
+      a.fore = new THREE.Mesh(UNIT_CYL, def.sleeve === 'short' ? skin : foreM); body.add(a.fore);
+      a.fingers = [0, 1].map(() => { const f = new THREE.Mesh(UNIT_BOX, skin); f.scale.set(0.018, 0.075, 0.02); f.visible = false; body.add(f); return f; });
       a.hand = new THREE.Mesh(UNIT_BOX, skin); body.add(a.hand);
-      if (def.wristband && sd === 1) { a.band = new THREE.Mesh(UNIT_CYL, MP.mat(0x111111)); body.add(a.band); }
+      if ((def.wristband && sd === 1) || (def.watch && sd === def.watch)) { a.band = new THREE.Mesh(UNIT_CYL, MP.mat(0x111111)); body.add(a.band); }
       return a;
     });
     // head
@@ -109,6 +133,17 @@
     box(head, 0.04, 0.07, 0.05, skin, -0.122, -0.005, -0.01); box(head, 0.04, 0.07, 0.05, skin, 0.122, -0.005, -0.01);
     if (def.earrings) [-1, 1].forEach(sd => box(head, 0.016, 0.03, 0.016, MP.mat(0xd9a83c), sd * 0.127, -0.05, 0));
     const tail = HAIR[def.hairStyle](head, hair);
+    if (def.hat === 'bucket') {
+      const hm = MP.mat(def.hatColor);
+      const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.235, 0.25, 0.02, 10), hm); brim.position.set(0, 0.14, 0); brim.rotation.x = -0.06; head.add(brim);
+      const crown = new THREE.Mesh(new THREE.CylinderGeometry(0.135, 0.155, 0.14, 8), hm); crown.position.set(0, 0.215, -0.005); head.add(crown);
+      box(head, 0.004, 0.2, 0.004, MP.mat(0x222222), -0.1, -0.02, 0.1); box(head, 0.004, 0.2, 0.004, MP.mat(0x222222), 0.1, -0.02, 0.1);
+    } else if (def.hat === 'cap') {
+      const hm = MP.mat(def.hatColor);
+      const crown = new THREE.Mesh(new THREE.SphereGeometry(0.15, 8, 4, 0, Math.PI * 2, 0, Math.PI / 2), hm); crown.scale.set(1, 0.75, 1.05); crown.position.set(0, 0.15, -0.01); head.add(crown);
+      box(head, 0.2, 0.018, 0.13, hm, 0, 0.152, 0.17).rotation.x = 0.12;
+    }
+    if (def.towel) { const tw = MP.mat(0xf2f2ee); box(body, 0.12, 0.05, 0.3, tw, def.towel * 0.16, 1.57, 0); box(body, 0.12, 0.28, 0.03, tw, def.towel * 0.17, 1.42, 0.14); box(body, 0.12, 0.22, 0.03, tw, def.towel * 0.16, 1.45, -0.14); }
     // bags
     let bag = null;
     if (def.bag === 'tote') {
@@ -121,13 +156,13 @@
       box(bag, 0.26, 0.1, 0.03, MP.mat(new THREE.Color(def.bagColor).multiplyScalar(0.85)), 0, 1.12, -0.28);
       [-1, 1].forEach(sd => box(bag, 0.035, 0.42, 0.02, MP.mat(0x2a2a2a), sd * 0.12, 1.3, 0.135));
     }
-    root.scale.setScalar(def.scale || 1);
+    { const s = def.scale || 1, w = def.width || 1; root.scale.set(s * w, s, s * w); }
     root.traverse(m => { if (m.isMesh) m.castShadow = true; });
 
     const S = V(0, 0, 0), up = V(0, 1, 0), tmp = V(0, 0, 0);
     // st: { x, z, yaw, phase, amp, arms: {[-1|1]: {T, pole, flat, swing}}, look: [yaw, pitch], skirt, bag, t }
     function apply(st) {
-      root.position.set(st.x, 0, st.z); root.rotation.y = st.yaw;
+      root.position.set(st.x, st.y || 0, st.z); root.rotation.y = st.yaw;
       const skirtOn = st.skirt || 0;
       body.position.y = Math.abs(Math.cos(st.phase)) * 0.03 * st.amp;
       body.scale.y = 1 + Math.sin(st.t * 1.6 + (def.breathPhase || 0)) * 0.005;
@@ -143,7 +178,11 @@
         if (a.band) MP.span(a.band, W.clone().lerp(E, 0.08), W.clone().lerp(E, 0.16), 0.05);
         // hand: a fist along the forearm, or an upright flat palm for namaste
         tmp.copy(W).sub(E).normalize();
-        if (P.flat > 0.5) { a.hand.scale.set(0.045, 0.12, 0.075); a.hand.position.set(a.sd * 0.024, W.y + 0.055, W.z); a.hand.quaternion.set(0, 0, 0, 1); a.hand.rotation.x = 0.15; }
+        a.fingers.forEach(f => { f.visible = false; });
+        if (P.peace > 0.5) {
+          a.hand.scale.set(0.065, 0.075, 0.05); a.hand.position.copy(W).add(V(0, 0.035, 0.01)); a.hand.quaternion.set(0, 0, 0, 1); a.hand.rotation.z = a.sd * 0.15;
+          a.fingers.forEach((f, k) => { f.visible = true; f.position.copy(a.hand.position).add(V((k ? 1 : -1) * 0.016 - a.sd * 0.012, 0.07, 0)); f.quaternion.set(0, 0, 0, 1); f.rotation.z = (k ? -1 : 1) * 0.2 + a.sd * 0.15; });
+        } else if (P.flat > 0.5) { a.hand.scale.set(0.045, 0.12, 0.075); a.hand.position.set(a.sd * 0.024, W.y + 0.055, W.z); a.hand.quaternion.set(0, 0, 0, 1); a.hand.rotation.x = 0.15; }
         else { a.hand.scale.set(0.06, 0.1, 0.075); a.hand.position.copy(W).addScaledVector(tmp, 0.05); a.hand.quaternion.setFromUnitVectors(up, tmp); }
       });
       const lk = st.look || [0, 0];

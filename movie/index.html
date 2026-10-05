@@ -51,10 +51,14 @@ label.file{display:inline-block;margin-top:6px}
 <script src="engine/audio.js"></script>
 <script src="scenes/temple-env.js"></script>
 <script src="scenes/temple.js"></script>
+<script src="scenes/hike-env.js"></script>
+<script src="scenes/hike.js"></script>
 <script src="engine/player.js"></script>
 <script>
 (function () {
-  const def = MP.SCENES.temple, player = MP.createPlayer(def, document.getElementById('gl'), document.getElementById('out'));
+  const def = MP.SCENES[new URLSearchParams(location.search).get('scene') || 'temple'] || MP.SCENES.temple;
+  if (def.title) { document.title = def.title; document.querySelector('h1').textContent = def.title; }
+  const player = MP.createPlayer(def, document.getElementById('gl'), document.getElementById('out'));
   const seek = document.getElementById('seek'), timeEl = document.getElementById('time'), playBtn = document.getElementById('play');
   let t = 0, playing = false, last = 0;
   const fmt = s => Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0');
